@@ -1,0 +1,23 @@
+{
+  "name": "contoso_bot",
+  "version": "1.0.0",
+  "description": "Concept banking bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dfu88/contoso_bot.git"
+  },
+  "author": "Dylan Fu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dfu88/contoso_bot/issues"
+  },
+  "homepage": "https://github.com/dfu88/contoso_bot#readme",
+  "dependencies": {
+    "botbuilder": "^3.12.0",
+    "restify": "^6.3.4"
+  }
+}
