@@ -1,4 +1,5 @@
 var builder = require('botbuilder');
+var rates = require("./ExchangeRates");
 var account = require("./BankAccount");
 
 exports.startDialog = function(bot){
@@ -22,7 +23,6 @@ exports.startDialog = function(bot){
             if(results.response){
                 session.conversationData["AccountName"] = results.response;
             }
-            session.send("Thanks %s, for opening an account with Contoso Bank", session.conversationData["AccountName"]);
             account.createAccount(session, session.conversationData["AccountName"], Number(0));
         }
     ]).triggerAction({
@@ -63,7 +63,7 @@ exports.startDialog = function(bot){
             if (results.response) {
                 session.conversationData["AccountName"] = results.response;
             }
-            session.send("Retrieving your bank balance(s)");
+            session.send("Retrieving your bank balance");
             account.displayBankBalance(session, session.conversationData["AccountName"]);
         }
     ]).triggerAction({
@@ -125,7 +125,17 @@ exports.startDialog = function(bot){
     });
 
     bot.dialog('ExchangeRate', [
-    // Insert logic here later
+        function(session,args){
+            var fromCurrencyEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'fromCurrency');
+            var toCurrencyEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'toCurrency');
+            if (fromCurrencyEntity&&toCurrencyEntity) {
+                session.send('Calculating conversion rates...');
+                rates.displayExchangeRateCards(fromCurrencyEntity.entity, toCurrencyEntity.entity, session);
+
+            } else {
+                session.send("No currencies identified! Please try and rephrase that again");
+            }
+        }
     ]).triggerAction({
         matches: 'ExchangeRate'
     });

@@ -2,7 +2,23 @@ var rest = require('./RestClient');
 
 exports.createAccount = function openAccount(session, accountName, bankBalance){
     var url = 'https://contoso-backend.azurewebsites.net/tables/contoso_table';
-    rest.openAccount(url, accountName, bankBalance);
+    rest.getBankBalance(url,session, accountName,function(message,session,accountName){
+        var allBankBalances = JSON.parse(message);
+        var bool = true;
+        for(var index in allBankBalances) {
+            if (allBankBalances[index].AccountName === accountName) {
+                console.log(allBankBalances[index]);
+                bool = false;
+                break;
+            }
+        }
+        if(bool){
+            rest.openAccount(url, accountName, bankBalance);
+            session.send("Thanks %s, for opening an account with Contoso Bank", accountName);
+        } else{
+            session.send("Can't open an account, as you already have one");
+        }
+    }); 
 };
 
 exports.displayBankBalance = function getBankBalance(session, accountName){
@@ -12,26 +28,18 @@ exports.displayBankBalance = function getBankBalance(session, accountName){
 
 function handleBankBalanceResponse(message, session, accountName) {
     var bankBalanceResponse = JSON.parse(message);
-    var allBankBalances = [];
-    var counter = 1;
+    var bankBalance = [];
     for (var index in bankBalanceResponse) {
         var accountNameReceived = bankBalanceResponse[index].AccountName;
-        var bankBalance = bankBalanceResponse[index].BankBalance;
+        var bankBalanceReceived = bankBalanceResponse[index].BankBalance;
 
         //Convert account names to lowercase for comparison
         if (accountName.toLowerCase() === accountNameReceived.toLowerCase()) {
-            if(bankBalanceResponse.length - 1) {
-                allBankBalances.push("Account Balance: $"+bankBalance);
-                counter++;
-            }
-            else {
-                allBankBalances.push("Account Balance: $"+bankBalance+",");
-                counter++;
-            }
+            bankBalance.push("$"+bankBalanceReceived);
         }        
     }
     // Print account balances for the user that is currently logged in
-    session.send("%s, your account balances are: %s", accountName, allBankBalances);
+    session.send("%s, your account balance is standing at: %s", accountName, bankBalance);
 }
 
 exports.deleteAccount = function closeAccount(session,accountName){
@@ -41,13 +49,13 @@ exports.deleteAccount = function closeAccount(session,accountName){
         for(var index in allBankBalances) {
             if (allBankBalances[index].AccountName === accountName) {
                 console.log(allBankBalances[index]);
-                rest.closeAccount(url,session,accountName,allBankBalances[index].id ,handleDeleteBankBalanceResponse)
+                rest.closeAccount(url,session,accountName,allBankBalances[index].id ,handleDeleteBankBalance)
             }
         }
     });
 };
 
-function handleDeleteBankBalanceResponse(message, session, accountName){
+function handleDeleteBankBalance(message, session, accountName){
     session.send("Closed %s's bank account",accountName);
 }
 
@@ -62,7 +70,7 @@ exports.updateAccount = function openAccount(session,accountName,value){
             if (accountNameReceived === accountName && allBankBalances[index].deleted === false) {
                 console.log(allBankBalances[index]);
                 updatedBalance = Number(bankBalance);
-                rest.closeAccount(url,session,accountName,allBankBalances[index].id,handleUpdatedBankBalanceResponse)
+                rest.closeAccount(url,session,accountName,allBankBalances[index].id,handleUpdatedBankBalance)
                 rest.openAccount(url, accountName, Number(updatedBalance+value))
                 break;
             }
@@ -71,6 +79,6 @@ exports.updateAccount = function openAccount(session,accountName,value){
     
 };
 
-function handleUpdatedBankBalanceResponse(message, session, accountName){
+function handleUpdatedBankBalance(message, session, accountName){
     session.send("Updated %s's bank account",accountName);
 }

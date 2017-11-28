@@ -54,3 +54,13 @@ exports.closeAccount = function deleteData(url,session,accountName,id,callback){
         }
     })
 };
+
+exports.getExchangeRateData = function getData(url, session, fromCurrency, toCurrency, callback){
+        request.get(url, function(err,res,body){
+            if(err){
+                console.log(err);
+            }else {
+                callback(body, fromCurrency, toCurrency, session);
+            }
+        });
+    };
