@@ -4,7 +4,7 @@
   "description": "Concept banking bot",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha"
   },
   "repository": {
     "type": "git",
@@ -18,6 +18,10 @@
   "homepage": "https://github.com/dfu88/contoso_bot#readme",
   "dependencies": {
     "botbuilder": "^3.12.0",
+    "chai": "^4.1.2",
+    "express": "^4.16.2",
+    "mocha": "^4.0.1",
+    "request": "^2.83.0",
     "restify": "^6.3.4"
   }
 }
