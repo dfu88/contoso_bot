@@ -38,7 +38,7 @@ function displayExchangeRateCards(message,fromCurrency,toCurrency,session){
                     "items": [
                         {
                             "type": "TextBlock",
-                            "text": "Converts between currencies",
+                            "text": "Show the exchange rates",
                             "wrap": true
                         },
                         {

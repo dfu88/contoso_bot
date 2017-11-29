@@ -1,6 +1,7 @@
 var builder = require('botbuilder');
 var rates = require("./ExchangeRates");
 var account = require("./BankAccount");
+var vision = require("./CognitiveVision");
 
 exports.startDialog = function(bot){
     
@@ -11,19 +12,23 @@ exports.startDialog = function(bot){
 
     bot.dialog('OpenAccount', [
         function (session, args, next) {
-            session.dialogData.args = args || {};        
-            if (!session.conversationData["AccountName"]) {
-                builder.Prompts.text(session, "Enter an account name to setup your account.");                
-            } else {
-                next(); // Goto next waterfall step, if already have name.
+            if (!isImage(session)){
+                session.dialogData.args = args || {};        
+                if (!session.conversationData["AccountName"]) {
+                    builder.Prompts.text(session, "Enter an account name to setup your account.");                
+                } else {
+                    next(); // Goto next waterfall step, if already have name.
+                }
+                next(); // Goto next function
             }
-            next(); // Goto next function
         },
         function(session, results, next){
-            if(results.response){
-                session.conversationData["AccountName"] = results.response;
+            if (!isImage(session)){
+                if(results.response){
+                    session.conversationData["AccountName"] = results.response;
+                }
+                account.createAccount(session, session.conversationData["AccountName"], Number(0));
             }
-            account.createAccount(session, session.conversationData["AccountName"], Number(0));
         }
     ]).triggerAction({
         matches: 'OpenAccount'
@@ -31,19 +36,23 @@ exports.startDialog = function(bot){
 
     bot.dialog('CloseAccount', [
         function (session, args, next) {
-            session.dialogData.args = args || {};        
-            if (!session.conversationData["AccountName"]) {
-                builder.Prompts.text(session, "Enter an account name to setup your account.");                
-            } else {
-                next(); // Goto next waterfall step, if already have name.
+            if (!isImage(session)){
+                session.dialogData.args = args || {};        
+                if (!session.conversationData["AccountName"]) {
+                    builder.Prompts.text(session, "Enter an account name to setup your account.");                
+                } else {
+                    next(); // Goto next waterfall step, if already have name.
+                }
+                next(); // Goto next function
             }
-            next(); // Goto next function
         },
         function(session,results,next){
-            if(results.response){
-                session.conversationData["AccountName"] = results.response;
+            if (!isImage(session)){
+                if(results.response){
+                    session.conversationData["AccountName"] = results.response;
+                }
+                account.deleteAccount(session,session.conversationData["AccountName"]);
             }
-            account.deleteAccount(session,session.conversationData["AccountName"]);
         }
     ]).triggerAction({
         matches: 'CloseAccount'
@@ -51,20 +60,24 @@ exports.startDialog = function(bot){
 
     bot.dialog('GetBankBalance', [
         function (session, args, next) {
-            session.dialogData.args = args || {};        
-            if (!session.conversationData["AccountName"]) {
-                builder.Prompts.text(session, "Enter an account name to setup your account.");                
-            } else {
-                next(); // Goto next waterfall step, if already have name.
+            if (!isImage(session)){
+                session.dialogData.args = args || {};        
+                if (!session.conversationData["AccountName"]) {
+                    builder.Prompts.text(session, "Enter an account name to setup your account.");                
+                } else {
+                    next(); // Goto next waterfall step, if already have name.
+                }
+                next(); // Goto next function
             }
-            next(); // Goto next function
         },
         function (session, results, next) {
-            if (results.response) {
-                session.conversationData["AccountName"] = results.response;
+            if (!isImage(session)){
+                if (results.response) {
+                    session.conversationData["AccountName"] = results.response;
+                }
+                session.send("Retrieving your bank balance...");
+                account.displayBankBalance(session, session.conversationData["AccountName"]);
             }
-            session.send("Retrieving your bank balance");
-            account.displayBankBalance(session, session.conversationData["AccountName"]);
         }
     ]).triggerAction({
         matches: 'GetBankBalance'
@@ -72,25 +85,29 @@ exports.startDialog = function(bot){
 
     bot.dialog('Deposit', [
         function (session, args, next) {
-            session.dialogData.args = args || {};        
-            if (!session.conversationData["AccountName"]) {
-                builder.Prompts.text(session, "Enter an account name to setup your account.");                
-            } else {
-                next(); // Goto next waterfall step, if already have name.
+            if (!isImage(session)){
+                session.dialogData.args = args || {};        
+                if (!session.conversationData["AccountName"]) {
+                    builder.Prompts.text(session, "Enter an account name to setup your account.");                
+                } else {
+                    next(); // Goto next waterfall step, if already have name.
+                }
+                next(); // Goto next function
             }
-            next(); // Goto next function
         },
         function(session,results,next){
-            if (results.response) {
-                session.conversationData["AccountName"] = results.response;
-            }
-            var valueEntity = builder.EntityRecognizer.findEntity(session.dialogData.args.intent.entities, 'value');
-            if (valueEntity) {
-                session.send("Depositing $"+valueEntity.entity+" into your account...");
-                account.updateAccount(session, session.conversationData["AccountName"], Number(valueEntity.entity));
+            if (!isImage(session)){  
+                if (results.response) {
+                    session.conversationData["AccountName"] = results.response;
+                }
+                var valueEntity = builder.EntityRecognizer.findEntity(session.dialogData.args.intent.entities, 'value');
+                if (valueEntity) {
+                    session.send("Depositing $"+valueEntity.entity+" into your account...");
+                    account.updateAccount(session, session.conversationData["AccountName"], Number(valueEntity.entity));
 
-            } else {
-                session.send("No amount has been specified!");
+                } else {
+                    session.send("No amount has been specified!");
+                }
             }
         }
     ]).triggerAction({
@@ -99,25 +116,29 @@ exports.startDialog = function(bot){
 
     bot.dialog('Withdrawal', [
         function (session, args, next) {
-            session.dialogData.args = args || {};        
-            if (!session.conversationData["AccountName"]) {
-                builder.Prompts.text(session, "Enter an account name to setup your account.");                
-            } else {
-                next(); // Goto next waterfall step, if already have name.
+            if (!isImage(session)){
+                session.dialogData.args = args || {};        
+                if (!session.conversationData["AccountName"]) {
+                    builder.Prompts.text(session, "Enter an account name to setup your account.");                
+                } else {
+                    next(); // Goto next waterfall step, if already have name.
+                }
+                next(); // Goto next function
             }
-            next(); // Goto next function
         },
         function(session,results,next){
-            if (results.response) {
-                session.conversationData["AccountName"] = results.response;
-            }
-            var valueEntity = builder.EntityRecognizer.findEntity(session.dialogData.args.intent.entities, 'value');
-            if (valueEntity) {
-                session.send("Withdrawing $"+valueEntity.entity+" from your account...");
-                account.updateAccount(session, session.conversationData["AccountName"], Number(-valueEntity.entity));
+            if (!isImage(session)){
+                if (results.response) {
+                    session.conversationData["AccountName"] = results.response;
+                }
+                var valueEntity = builder.EntityRecognizer.findEntity(session.dialogData.args.intent.entities, 'value');
+                if (valueEntity) {
+                    session.send("Withdrawing $"+valueEntity.entity+" from your account...");
+                    account.updateAccount(session, session.conversationData["AccountName"], Number(-valueEntity.entity));
 
-            } else {
-                session.send("No amount has been specified!");
+                } else {
+                    session.send("No amount has been specified!");
+                }
             }
         }
     ]).triggerAction({
@@ -126,14 +147,16 @@ exports.startDialog = function(bot){
 
     bot.dialog('ExchangeRate', [
         function(session,args){
-            var fromCurrencyEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'fromCurrency');
-            var toCurrencyEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'toCurrency');
-            if (fromCurrencyEntity&&toCurrencyEntity) {
-                session.send('Calculating conversion rates...');
-                rates.displayExchangeRateCards(fromCurrencyEntity.entity, toCurrencyEntity.entity, session);
+            if (!isImage(session)){
+                var fromCurrencyEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'fromCurrency');
+                var toCurrencyEntity = builder.EntityRecognizer.findEntity(args.intent.entities, 'toCurrency');
+                if (fromCurrencyEntity&&toCurrencyEntity) {
+                    session.send('Calculating conversion rates...');
+                    rates.displayExchangeRateCards(fromCurrencyEntity.entity, toCurrencyEntity.entity, session);
 
-            } else {
-                session.send("No currencies identified! Please try and rephrase that again");
+                } else {
+                    session.send("No currencies identified! Please try and rephrase that again");
+                }
             }
         }
     ]).triggerAction({
@@ -141,8 +164,23 @@ exports.startDialog = function(bot){
     });
 
     bot.dialog('Welcome', function (session, args){
-        session.send("Hello, how can I help you?");
+        if (!isImage(session)){
+            session.send("Hello, how can I help you?");
+        }
     }).triggerAction({
         matches: 'Welcome'
     });
+}
+
+function isImage(session) { 
+    var msg = session.message.text;
+    if ((session.message.attachments && session.message.attachments.length > 0) || msg.includes("http")) {
+        //call custom vision
+        vision.getMessage(session);
+
+        return true;
+    }
+    else {
+        return false;
+    }
 }
